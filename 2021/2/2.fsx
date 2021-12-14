@@ -4,34 +4,31 @@ let split (str:string) = str.Split [|' '|]
 let command list = list |> List.head
 let units list = list |> List.tail |> List.head |> int
 
-type Length = int
-type Depth = int
-type Aim = int
-
-type Course = Length * Depth * Aim
+type Course = {
+    Horizontal: int
+    Depth: int
+    Aim: int
+}
 
 let input = File.ReadAllLines "input.txt"
 
 let commands =
     input
-    |> Array.map (fun s -> split s |> Array.toList)
+    |> Array.map (fun s -> split s)
     |> Array.toList
 
-let updateCourse command value course : Course =
-    let l, d, a = course
+let updateCourse command course : Course =
     match command with
-    | "forward" -> (l + value, d + a * value, a)
-    | "up" -> (l, d, a - value)
-    | "down" -> (l, d, a + value)
-    | _ -> (0, 0, 0)
+    | [| "forward"; value|] -> {Horizontal = course.Horizontal + int value; Depth = course.Depth + course.Aim * int value; Aim = course.Aim}
+    | [| "up"; value|] -> {Horizontal = course.Horizontal; Depth = course.Depth; Aim = course.Aim - int value}
+    | [| "down"; value|] -> {Horizontal = course.Horizontal; Depth = course.Depth; Aim = course.Aim + int value}
+    | _ -> failwith "Unknown command"
 
-let rec calculateCourse commands (course:Course) =
-    match commands with
-    | [] -> course
-    | [x] -> updateCourse (command x) (units x) course
-    | x::xs -> calculateCourse xs (updateCourse (command x) (units x) course)
+let calculateCourse commands =
+    commands
+    |> List.fold (fun course x -> updateCourse x course) {Horizontal = 0; Depth = 0; Aim = 0}
 
-let finalLength, finalDepth, _ = calculateCourse commands (0,0,0)
-let total = finalLength * finalDepth
+let finalCourse = calculateCourse commands
+let total = finalCourse.Horizontal * finalCourse.Depth
 
 printfn "Result: %d" total
