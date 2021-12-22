@@ -1,7 +1,5 @@
 open System.IO
 
-let split (char:char) (str:string) = str.Split char
-
 let input =
     File.ReadAllLines "input.txt"
     |> Array.map (fun line -> Seq.toArray line |> Array.map (fun x -> int x - int '0'))
